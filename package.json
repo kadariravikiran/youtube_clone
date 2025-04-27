@@ -16,6 +16,8 @@
 
   "scripts": {
 
+    "postinstall": "npm install -g vite",
+
     "dev": "vite",
 
     "build": "vite build",
