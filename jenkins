@@ -1,0 +1,75 @@
+pipeline {
+    agent any
+
+    environment {
+        FRONTEND_DIR = "/home/ubuntu/app/myapp/youtube_clone-main"
+        BACKEND_DIR  = "/home/ubuntu/app/myapp/youtube_backend"
+        NGINX_ROOT   = "/var/www/youtube_clone"
+        BACKEND_NAME = "youtube-backend"
+    }
+
+    stages {
+
+        stage('Build Frontend') {
+            steps {
+                sh """
+                set -e
+                cd ${FRONTEND_DIR}
+                npm install
+                npm run build
+                """
+            }
+        }
+
+        stage('Deploy Frontend to Nginx') {
+            steps {
+                sh """
+                set -e
+                sudo rm -rf ${NGINX_ROOT}
+                sudo mkdir -p ${NGINX_ROOT}
+                sudo cp -r ${FRONTEND_DIR}/dist/* ${NGINX_ROOT}/
+                sudo nginx -t
+                sudo systemctl reload nginx
+                """
+            }
+        }
+
+        stage('Install Backend Dependencies') {
+            steps {
+                sh """
+                set -e
+                cd ${BACKEND_DIR}
+                npm install
+                """
+            }
+        }
+
+        stage('Start / Restart Backend with PM2') {
+            steps {
+                sh """
+                set -e
+
+                if ! command -v pm2 > /dev/null; then
+                    sudo npm install -g pm2
+                fi
+
+                cd ${BACKEND_DIR}
+
+                pm2 delete ${BACKEND_NAME} || true
+                pm2 start npm --name ${BACKEND_NAME} -- start
+                pm2 save
+                """
+            }
+        }
+
+    }
+
+    post {
+        success {
+            echo "Deployment Successful"
+        }
+        failure {
+            echo "Deployment Failed"
+        }
+    }
+}
