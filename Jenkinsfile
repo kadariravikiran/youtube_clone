@@ -25,7 +25,7 @@ pipeline {
       steps {
         sh '''
           set -e
-          cd repo/youtube_clone-main
+          cd /youtube_clone-main
           npm install
           npm run build
         '''
@@ -38,7 +38,7 @@ pipeline {
           set -e
           sudo rm -rf "$NGINX_ROOT"
           sudo mkdir -p "$NGINX_ROOT"
-          sudo cp -r repo/youtube_clone-main/dist/* "$NGINX_ROOT"/
+          sudo cp -r /youtube_clone-main/dist/* "$NGINX_ROOT"/
           sudo nginx -t
           sudo systemctl reload nginx
         '''
@@ -50,7 +50,7 @@ pipeline {
         sh '''
           set -e
 
-          if [ ! -d repo/youtube_backend ]; then
+          if [ ! -d /youtube_backend ]; then
             echo "youtube_backend folder not found in repo"
             exit 1
           fi
@@ -59,7 +59,7 @@ pipeline {
             sudo npm install -g pm2
           fi
 
-          cd repo/youtube_backend
+          cd /youtube_backend
           npm install
 
           pm2 delete "$PM2_NAME" || true
