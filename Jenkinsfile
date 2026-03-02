@@ -1,10 +1,11 @@
+
 pipeline {
     agent any
 
     environment {
         REPO_URL   = "https://github.com/kadariravikiran/youtube_clone.git"
         BRANCH     = "main"
-        APP_ROOT   = "/home/ubuntu/app/myapp"
+        APP_ROOT   = "/opt/youtube_clone"
         NGINX_ROOT = "/var/www/youtube_clone"
         PM2_NAME   = "youtube-backend"
     }
@@ -14,6 +15,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 sh """
+                set -e
                 rm -rf ${APP_ROOT}
                 mkdir -p ${APP_ROOT}
                 cd ${APP_ROOT}
@@ -25,6 +27,7 @@ pipeline {
         stage('Build Frontend') {
             steps {
                 sh """
+                set -e
                 cd ${APP_ROOT}/repo/youtube_clone-main
                 npm install
                 npm run build
@@ -35,9 +38,10 @@ pipeline {
         stage('Deploy Frontend') {
             steps {
                 sh """
-                sudo rm -rf ${NGINX_ROOT}
-                sudo mkdir -p ${NGINX_ROOT}
-                sudo cp -r ${APP_ROOT}/repo/youtube_clone-main/dist/* ${NGINX_ROOT}/
+                set -e
+                rm -rf ${NGINX_ROOT}
+                mkdir -p ${NGINX_ROOT}
+                cp -r ${APP_ROOT}/repo/youtube_clone-main/dist/* ${NGINX_ROOT}/
                 sudo nginx -t
                 sudo systemctl reload nginx
                 """
@@ -47,12 +51,15 @@ pipeline {
         stage('Deploy Backend') {
             steps {
                 sh """
-                if ! command -v pm2 > /dev/null; then
+                set -e
+
+                if ! command -v pm2 >/dev/null 2>&1; then
                     sudo npm install -g pm2
                 fi
 
                 cd ${APP_ROOT}/repo/youtube_backend
                 npm install
+
                 pm2 delete ${PM2_NAME} || true
                 pm2 start npm --name ${PM2_NAME} -- start
                 pm2 save
