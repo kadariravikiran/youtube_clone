@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        REPO_URL   = ""
+        REPO_URL   = "https://github.com/kadariravikiran/youtube_clone.git"
         BRANCH     = "main"
         APP_ROOT   = "/home/ubuntu/app/myapp"
         NGINX_ROOT = "/var/www/youtube_clone"
