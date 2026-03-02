@@ -16,7 +16,7 @@ pipeline {
         sh '''
           set -e
           rm -rf repo
-          git clone -b main https://github.com/kadariravikiran/youtube_clone.git repo
+          git clone -b "$BRANCH" "$REPO_URL" repo
         '''
       }
     }
@@ -36,9 +36,9 @@ pipeline {
       steps {
         sh '''
           set -e
-          sudo rm -rf /var/www/youtube_clone
-          sudo mkdir -p /var/www/youtube_clone
-          sudo cp -r repo/youtube_clone-main/dist/* /var/www/youtube_clone/
+          sudo rm -rf "$NGINX_ROOT"
+          sudo mkdir -p "$NGINX_ROOT"
+          sudo cp -r repo/youtube_clone-main/dist/* "$NGINX_ROOT"/
           sudo nginx -t
           sudo systemctl reload nginx
         '''
@@ -62,8 +62,8 @@ pipeline {
           cd repo/youtube_backend
           npm install
 
-          pm2 delete youtube-backend || true
-          pm2 start npm --name youtube-backend -- start
+          pm2 delete "$PM2_NAME" || true
+          pm2 start npm --name "$PM2_NAME" -- start
           pm2 save
         '''
       }
